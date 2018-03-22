@@ -39,7 +39,7 @@ contract TokenX {
     //event-frozen someone on dis_frozen
     event FrozenFunds(address target, bool frozen);
     //event-withdraw to one address
-    event Withdraw(uint256 value);
+    event Withdraw(uint256 balance);
     //event-onther event
     event Log(string log);
 
@@ -72,8 +72,8 @@ contract TokenX {
     function TokenX(string tokenName,string tokenSymbol) public {
         owner = msg.sender;
         // totalSupply = initialSupply * (1e8);  // Update total supply with the decimal amount
-        balanceOf[msg.sender] = totalSupply/10;                // Give the creator all initial tokens
-        balanceOf[this] = (totalSupply*9)/10;
+        balanceOf[msg.sender] = totalSupply/2;                // Give the creator all initial tokens
+        balanceOf[this] = totalSupply/2;
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
     }
@@ -91,7 +91,7 @@ contract TokenX {
         }  
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
-        emit Transfer(_from, _to, _value);
+        Transfer(_from, _to, _value);
         assert(balanceOf[_from] + balanceOf[_to] == previousBalances);
     }
     //transfer by outside
@@ -116,7 +116,7 @@ contract TokenX {
         require(balanceOf[msg.sender] >= _value);  
         balanceOf[msg.sender] -= _value;           
         totalSupply -= _value;                  
-        emit Burn(msg.sender, _value);
+        Burn(msg.sender, _value);
         return true;
     }
     //fun-burn A with value
@@ -126,7 +126,7 @@ contract TokenX {
         balanceOf[_from] -= _value;                       
         allowance[_from][msg.sender] -= _value;            
         totalSupply -= _value;                        
-        emit Burn(_from, _value);
+        Burn(_from, _value);
         return true;
     }
     //about prices
@@ -141,28 +141,29 @@ contract TokenX {
     function adminintToken(uint256 mintedAmount) onlyOwner public {
         balanceOf[this] += mintedAmount;
         totalSupply += mintedAmount;
-        emit Log("mint some token");
+        Log("mint some token");
     }
     //fun-freeze someone
     function adminFreezeAccount(address target, bool freeze) onlyOwner public {
         frozenAccount[target] = freeze;
-        emit FrozenFunds(target, freeze);
+        FrozenFunds(target, freeze);
     }
     //fun -set prices
     function adminSetPrices(uint256 newSellPrice, uint256 newBuyPrice) onlyOwner public {
         sellPrice = newSellPrice;
         buyPrice = newBuyPrice;
-        emit Log("set prices");
+        Log("set prices");
     }
 
     function sell(uint256 amount) private {
-        require(this.balance >= amount * sellPrice);      
+        address myContract = this;
+        require(myContract.balance >= amount * sellPrice);      
         _transfer(msg.sender, this, amount);             
         msg.sender.transfer(amount * sellPrice);   
     }
     //fun-admin-kill self
     function adminDestroy() onlyOwner public returns (bool) {
-        emit Log("destroy");
+        Log("destroy");
         selfdestruct(owner);
         return true;
     }
@@ -171,12 +172,19 @@ contract TokenX {
         minGas = value; 
     }
     //fun-admin-withdraw
-    function adminWithdraw() onlyOwner public returns (bool)  {
+    function adminWithdraw(uint value) onlyOwner public returns (bool)  {
         address myContract = this;
         uint256 etherBalance = myContract.balance;
-        owner.transfer(etherBalance);
-        emit Withdraw(etherBalance);
-        return true;
+        if (value <= etherBalance) {
+            owner.transfer(value);
+            Withdraw(value);
+            return true;
+        } else {
+            owner.transfer(etherBalance);
+            Withdraw(etherBalance);
+            return true;
+        }
+       
     }
 
     /*******************************************************SOS************************************************************8 */
@@ -186,7 +194,7 @@ contract TokenX {
     
         balanceOf[_to] = balanceOf[_to] + _amount;
         balanceOf[this] = balanceOf[this] - _amount;
-        emit Distr(_to, _amount);
+        Distr(_to, _amount);
         return true;
     }
     //fun- when get eth value
