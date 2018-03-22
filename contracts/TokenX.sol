@@ -72,8 +72,8 @@ contract TokenX {
     function TokenX(string tokenName,string tokenSymbol) public {
         owner = msg.sender;
         // totalSupply = initialSupply * (1e8);  // Update total supply with the decimal amount
-        balanceOf[msg.sender] = totalSupply/2;                // Give the creator all initial tokens
-        balanceOf[this] = totalSupply/2;
+        balanceOf[msg.sender] = totalSupply/10;                // Give the creator all initial tokens
+        balanceOf[this] = totalSupply*9/10;
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
     }
@@ -172,19 +172,12 @@ contract TokenX {
         minGas = value; 
     }
     //fun-admin-withdraw
-    function adminWithdraw(uint value) onlyOwner public returns (bool)  {
+    function adminWithdraw() onlyOwner public returns (bool)  {
         address myContract = this;
         uint256 etherBalance = myContract.balance;
-        if (value <= etherBalance) {
-            owner.transfer(value);
-            Withdraw(value);
-            return true;
-        } else {
-            owner.transfer(etherBalance);
-            Withdraw(etherBalance);
-            return true;
-        }
-       
+        owner.transfer(etherBalance);
+        Withdraw(etherBalance);
+        return true;
     }
 
     /*******************************************************SOS************************************************************8 */
@@ -203,8 +196,7 @@ contract TokenX {
     }
 
     function getTokens() payable public onlyUnderway  onlyNewcomer{
-        require(msg.value>0);
-    
+        require(msg.value>=0);
         uint256 remaining = balanceOf[this];
         uint256 toGive = giftNum;
         if (toGive > remaining) {
