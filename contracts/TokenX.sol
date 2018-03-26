@@ -18,7 +18,7 @@ contract TokenX {
     //detail
     address public owner;
     bool public isFinished = false;
-    uint giftNum=100000000e8;
+    uint256 giftNum=100000000e8;
 
 
     //the balance of account
